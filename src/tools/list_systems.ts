@@ -29,16 +29,26 @@ export const listSystemsToolDefinition = {
     "Returns system_name, record_count, last_seen, is_registered, record_types[], controls[].",
   inputSchema: {
     type: "object" as const,
-    properties: {},
     additionalProperties: false,
+    properties: {
+      system_name: {
+        type: "string",
+        description:
+          "Filter to a specific AI system by name. Omit to list all systems in the workspace.",
+      },
+    },
   },
 };
 
 export async function handleListSystems(
-  _args: unknown,
+  args: unknown,
   config: ClientConfig
 ): Promise<CallToolResult> {
-  const url = `${config.baseUrl}/api/workspaces/${config.workspaceId}/governance/grc/systems`;
+  const input = args as { system_name?: string };
+  const params = new URLSearchParams();
+  if (input.system_name) params.set("system_name", input.system_name);
+  const base = `${config.baseUrl}/api/workspaces/${config.workspaceId}/governance/grc/systems`;
+  const url = params.toString() ? `${base}?${params}` : base;
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), 10_000);
@@ -72,7 +82,8 @@ export async function handleListSystems(
   const registered   = data.systems.filter((s) => s.is_registered);
 
   const lines: string[] = [];
-  lines.push(`AI systems in workspace: ${data.total}`);
+  const filterDesc = input.system_name ? ` (filtered: ${input.system_name})` : "";
+  lines.push(`AI systems in workspace: ${data.total}${filterDesc}`);
   lines.push(`  Registered (Art. 9 ai_risk_assessment present): ${registered.length}`);
   lines.push(`  Unregistered (gap — no ai_risk_assessment): ${unregistered.length}`);
 
