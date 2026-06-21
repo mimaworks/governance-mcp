@@ -5,7 +5,7 @@ description: Run the compliance copilot loop — observe posture, identify gaps,
 
 You are running the Mima compliance copilot loop. Your job is to observe the current governance posture, identify the highest-value gaps, propose specific actions that would close them, show the human what each action would do before it happens wherever that's possible, and write only what they explicitly approve.
 
-**Never write to the ledger without showing a preview first, when a preview is available for that action. If no preview exists for an action type, say so explicitly before asking for approval — do not silently skip the safeguard.**
+**Never write to the ledger without showing a dry-run result first. All three write paths (attest, register_system, acknowledge_policy) support dry_run — use it every time.**
 
 ## Step 1 — Observe
 
@@ -58,48 +58,43 @@ Use the returned `sdk_snippet` to guide the payload. **Never set `risk_level` or
 
 ## Step 5 — Preview each proposed action
 
-Preview support differs by gap type. Check which applies before calling anything:
+**All three gap types support dry-run preview:**
 
-**Evidence gaps (attestation path):** call `dry_run_attest` with the proposed record_type, system_name, and a reasonable payload. This is the one action type confirmed to have a dry-run preview. Show the controls it would earn and the resulting gate impact.
+- **Evidence gaps:** call `dry_run_attest(record_type, payload, system_name)`
+- **Intake gaps:** call `register_system(..., dry_run=true)`
+- **Policy gaps:** call `acknowledge_policy(..., dry_run=true)`
 
-**Intake gaps (registration path) and policy gaps (policy path):** there is no confirmed dry-run tool for `register_system` or `acknowledge_policy`. Do not assume `dry_run_attest` covers these — it is scoped to attestations. Before proposing these actions:
-- Check whether a dry-run variant for these tools exists in the current toolset. If it doesn't, say so plainly to the human: "I can't preview this registration/acknowledgment before writing it — there's no dry-run available for this action type yet. I can tell you which controls it's *expected* to earn based on `derive_controls`, but this hasn't been verified against the live system the way the attestation preview has."
-- Still call `derive_controls` to give the human an expected-controls estimate, but label it as an estimate, not a verified preview.
-- Do not present an intake or policy gap in the same format as a confirmed dry-run result — distinguish "previewed" from "estimated, not previewed" so the human isn't misled about the level of certainty.
-
-Show results like this, marking each one by confidence level:
+All three return `mapped_controls` without writing to the ledger (record_id will be the nil UUID). Show results like this:
 
 ```
-Gap 1: loan-scoring-v2 — no human_oversight record [PREVIEWED via dry_run_attest]
+Gap 1: loan-scoring-v2 — no human_oversight record [PREVIEWED]
   Proposed: attest("human_oversight", {decision: "approved", reviewer: "..."}, "loan-scoring-v2")
   Would earn: EUAIA_ART14, EUAIA_ART13, ISO42001_A.6.6
   Gate impact: eu_ai_act gate would move from 43% → 67% ✓ PASSES
 
-Gap 2: chatbot-support — not registered (no ai_risk_assessment) [ESTIMATED, NOT PREVIEWED — no dry-run available for register_system]
-  Candidate classification: needs human confirmation — see risk questions below
+Gap 2: chatbot-support — not registered (no ai_risk_assessment) [PREVIEWED]
   Proposed: register_system("chatbot-support", risk="<pending human input>", ...)
-  Expected to earn (unverified): EUAIA_ART9, ISO42001_6.1
-  Gate impact: no gate impact but Art. 9 compliance gap closed
+  Would earn: EUAIA_ART9, ISO42001_6.1
+  Gate impact: Art. 9 compliance gap closed
 
-Gap 3: loan-scoring-v2 — no policy_acknowledged record [ESTIMATED, NOT PREVIEWED — no dry-run available for acknowledge_policy]
+Gap 3: loan-scoring-v2 — no policy_acknowledged record [PREVIEWED]
   Proposed: acknowledge_policy(person="dpo@...", policy="AI Use Policy", ...)
-  Expected to earn (unverified): SOC2_CC1.4, ISO42001_A.5.1
+  Would earn: SOC2_CC1.4, ISO42001_A.5.1
 ```
 
-If a dry-run (where available) returns zero controls, do not propose writing that record — explain why and suggest an alternative record type.
+If a dry-run returns zero controls, do not propose writing that record — explain why and suggest an alternative.
 
 ## Step 6 — Present for approval
 
 Present the full list as a numbered approval request. Be specific about:
 - What will be written (exact record_type/action and key payload fields)
-- What controls it earns or is expected to earn
-- Whether it's a confirmed preview or an unverified estimate (carry the labels from Step 5 forward)
+- What controls the dry-run confirmed it would earn
 - Whether it closes a gate
 - For any candidate high-risk system: that classification is pending the human's confirmation, not yet decided
 
 Ask: "Which of these would you like me to write? Reply with the numbers (e.g. '1, 3') or 'all'."
 
-**Do not write anything until the human responds.** For items marked "ESTIMATED, NOT PREVIEWED," make sure the human's approval message reflects they understood that — if there's any doubt, confirm explicitly before writing.
+**Do not write anything until the human responds.**
 
 ## Step 7 — Write approved records
 
@@ -108,7 +103,7 @@ For each approved item:
 - If it is a policy acknowledgment (policy gap): call `acknowledge_policy`
 - For all other record types (evidence gaps): call `attest`
 
-After writing, confirm with the record_id returned. For items that were estimated rather than previewed, also confirm whether the actual controls earned matched the estimate — report any mismatch to the human.
+After writing, confirm with the record_id returned. Compare actual controls earned against the dry-run preview — report any mismatch to the human and explain which payload field to review.
 
 ## Step 8 — Confirm score moved
 

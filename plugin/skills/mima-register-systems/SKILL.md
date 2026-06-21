@@ -62,27 +62,25 @@ For each system, collect the following. Do not invent any value — ask if missi
 - `annex_iii_category` — which Annex III category applies: biometric_categorisation, critical_infrastructure, education_vocational, employment_workers, essential_services, law_enforcement, migration_asylum, administration_of_justice, democratic_processes. If unclear, present the full list and ask the human to select.
 - `training_data_url` — URL to training data documentation (optional but strongly recommended for audit trail)
 
-## Step 4 — Estimate controls (no preview available for registration)
+## Step 4 — Dry-run each registration
 
-There is no dry-run tool for `register_system`. Do not call `dry_run_attest` for this step — it is scoped to attestation records and cannot simulate the registration path or the `is_registered` flag change.
+Call `register_system(..., dry_run=true)` with the confirmed fields for each system. This previews which controls the registration would earn without writing anything to the ledger (record_id will be the nil UUID).
 
-Instead, call `derive_controls` with the system's confirmed function description and risk tier. This gives an expected-controls estimate. Label it as an estimate, not a verified preview.
-
-Show clearly:
+Show the result:
 
 ```
-Registration estimate for loan-scoring-v2: [ESTIMATED, NOT PREVIEWED — no dry-run available for register_system]
-  Expected to earn (unverified): EUAIA_ART9, EUAIA_ART10, ISO42001_6.1, ISO42001_A.6.2
-  Art. 9 intake gap: expected to close (unverified until written)
-  ⚠ This is an expected-controls estimate from derive_controls, not a verified preview.
-    There is no dry-run for register_system — the actual controls earned will be confirmed after writing.
+Registration dry-run for loan-scoring-v2: [PREVIEWED]
+  Would earn: EUAIA_ART9, EUAIA_ART10, ISO42001_6.1, ISO42001_A.6.2
+  Art. 9 intake gap: would close on registration
 ```
+
+If the dry-run returns zero controls, flag it and ask the human to check the `risk_level`, `annex_iii_category`, or `intended_purpose` fields before proceeding.
 
 ## Step 5 — Present for approval
 
-List all pending registrations with their estimates. For each one, include:
+List all pending registrations with their dry-run results. For each one, include:
 - The confirmed classification basis (function, not name)
-- The expected controls (labelled as unverified estimates)
+- The controls the dry-run confirmed it would earn
 - The `art5` confirmation status (confirmed / pending / blocked)
 - For Annex III systems: whether legal/compliance sign-off has been obtained
 
@@ -107,17 +105,17 @@ Confirm with the `record_id` returned.
 
 ## Step 7 — Verify what was actually written
 
-After writing, compare actual controls earned (from the `register_system` response) against the estimate from Step 4. Report any mismatch to the human:
+After writing, compare actual controls earned against the dry-run preview from Step 4. Report any mismatch to the human:
 
 ```
 loan-scoring-v2 registered. record_id: abc-123
-  Estimated controls: EUAIA_ART9, EUAIA_ART10, ISO42001_6.1, ISO42001_A.6.2
+  Dry-run preview: EUAIA_ART9, EUAIA_ART10, ISO42001_6.1, ISO42001_A.6.2
   Actual controls earned: EUAIA_ART9, ISO42001_6.1
   ⚠ Mismatch: EUAIA_ART10 and ISO42001_A.6.2 not earned — payload may need additional fields.
     Recommend reviewing the annex_iii_category or training_data_url fields.
 ```
 
-If actual matches estimate, confirm cleanly.
+If actual matches preview, confirm cleanly.
 
 ## Step 8 — Confirm impact
 
@@ -134,4 +132,4 @@ Call `list_systems` again. Report:
 - If the human cannot confirm `art5_self_assessment`, do not register the system — flag it for legal review.
 - `assessor` must be a real person's email. If unknown, ask for it. Do not use placeholders.
 - For high-risk systems, `annex_iii_category` is mandatory. If unclear which category, present the full list and ask.
-- Never present an expected-controls estimate using "would earn" language — that phrasing implies a verified preview. Use "expected to earn (unverified)" until the write is confirmed.
+- Always run `register_system(..., dry_run=true)` before the real write — never skip the preview step.
