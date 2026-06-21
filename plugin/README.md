@@ -53,7 +53,7 @@ Runs the Art. 9 intake workflow:
 4. Dry-runs each registration and waits for your approval
 5. Registers approved systems and confirms the gap is closed
 
-**Use when**: you have unregistered AI systems, or when preparing for the EU AI Act deadline.
+**Use when**: you have unregistered AI systems, or when preparing for an EU AI Act or ISO 42001 audit — both require a formal AI system inventory with risk assessments on file.
 
 ### `/mima:check-readiness`
 
@@ -84,3 +84,18 @@ These skills use the 9-tool Mima MCP server:
 | `check_gates` | Check gate pass/fail status with exit codes |
 
 The loop design follows the audit principle: **Claude proposes, human approves, Mima records.** Nothing is written to the ledger without explicit approval.
+
+## Framework coverage
+
+Every record type maps to whichever frameworks apply — one approval closes gaps across all four simultaneously:
+
+| Record type | EU AI Act | ISO 42001 | SOC 2 | NIST AI RMF |
+|---|---|---|---|---|
+| `ai_risk_assessment` | Art. 9, Art. 11 | A.6.1, A.9.1 | CC3.1, CC3.2, CC5.1 | GOV.1, MAP.1 |
+| `human_oversight` | Art. 13, Art. 14 | A.6.2, A.6.6 | — | GOV.1 |
+| `model_evaluation` | Art. 9, Art. 15 | A.6.3, A.9.2 | CC3.2, CC5.1 | MEA.1 |
+| `policy_acknowledged` | — | A.2.2 | CC1.4, CC2.2, CC5.1, CC5.3 | — |
+| `incident_report` | Art. 73 | A.3.2 | CC3.3, CC4.2, CC7.3, CC7.4 | MNG.1 |
+| `change_event` | Art. 9, Art. 17 | A.6.5 | CC8.1 | — |
+
+`get_posture` and `/mima:check-readiness` surface all four framework scores — not just EU AI Act.
