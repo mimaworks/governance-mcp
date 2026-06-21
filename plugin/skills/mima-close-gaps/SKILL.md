@@ -1,11 +1,11 @@
 ---
 name: mima-close-gaps
-description: Run the compliance copilot loop — observe posture, identify gaps, dry-run proposed evidence records, present for human approval, then write approved records. Use when the user asks to close compliance gaps, improve their EU AI Act score, or fix failing governance gates.
+description: Run the compliance copilot loop — observe posture, identify gaps, dry-run proposed evidence records where possible, present for human approval, then write approved records. Use when the user asks to close compliance gaps, improve their EU AI Act score, or fix failing governance gates.
 ---
 
-You are running the Mima compliance copilot loop. Your job is to observe the current governance posture, identify the highest-value gaps, propose specific evidence records that would close them, show the human what controls each record would earn, and write only what they explicitly approve.
+You are running the Mima compliance copilot loop. Your job is to observe the current governance posture, identify the highest-value gaps, propose specific actions that would close them, show the human what each action would do before it happens wherever that's possible, and write only what they explicitly approve.
 
-**Never write to the ledger without showing a dry-run result first.**
+**Never write to the ledger without showing a preview first, when a preview is available for that action. If no preview exists for an action type, say so explicitly before asking for approval — do not silently skip the safeguard.**
 
 ## Step 1 — Observe
 
@@ -31,49 +31,84 @@ Based on steps 1 and 2, identify the three highest-value gaps to close. Priority
 
 For each gap, call `list_evidence(system_name, since="<30 days ago>")` to confirm evidence is genuinely missing, not just old.
 
-## Step 4 — Derive controls (if needed)
+Note which gap type each one is — this determines both how you classify it in Step 4 and which tool handles it in Steps 5 and 7:
+- **Evidence gap** (registered system, missing a record type) → attestation path
+- **Intake gap** (system not registered at all) → registration path
+- **Policy gap** (registered system, missing policy acknowledgment) → policy path
 
-For any gap where the right record type is unclear, call `derive_controls` with a description of the system and what it does. Use the returned `sdk_snippet` to guide the payload.
+## Step 4 — Derive controls and classify risk (if needed)
 
-## Step 5 — Dry-run each proposed record
+For any gap where the right record type is unclear, call `derive_controls` with a description of the system and what it does.
 
-For each of the top 3 gaps, call `dry_run_attest` with the proposed record_type, system_name, and a reasonable payload. Show the result:
+**Before calling `derive_controls` for an unregistered system (an intake gap), surface the Annex III classification question rather than assuming it.**
+
+A system's name or surface category (e.g. "chatbot") does not determine its risk tier — its *function* does. Two systems that both look like "a chatbot" can land in different tiers entirely. Ask the human these questions if they haven't already been answered in the conversation:
+
+1. **What does the system's output actually do?** Does it inform a person, or does it (or a downstream process) determine something about them — eligibility, access, a score, an approval/denial?
+2. **Is the subject matter tied to one of the Annex III domains?** Specifically: biometrics, critical infrastructure, education/training access, employment (hiring, performance, promotion, termination), access to essential services (credit, insurance, benefits, healthcare), law enforcement, migration/asylum/border, or judicial/democratic processes.
+3. **Who relies on the output, and for what?** A licensing chatbot that explains renewal steps for a driver's license is functionally different from one whose output is used to decide whether someone qualifies for a professional license, work permit, or benefit — even though both might be called "the license bot."
+
+Do not infer an answer from the system's name alone. If the human's description doesn't clearly resolve these questions, ask directly: "Does this system's output ever determine or materially influence someone's access to a service, job, license, or legal status — or does it only provide information?" Treat a "not sure" or partial answer as **unclear**, not as a negative.
+
+If the answers indicate the system likely falls in an Annex III domain: note that this is a candidate high-risk classification per Article 6(2), flag it explicitly to the human, and recommend they confirm with whoever owns legal/compliance sign-off before registration — `derive_controls` and this skill can scaffold the question, not make the legal determination.
+
+If the answers clearly place it outside all eight domains (e.g., it only answers FAQs and never gates access to anything): proceed with `derive_controls` using a non-high-risk framing, but still note the basis for that conclusion in the registration payload so it's auditable later, not just asserted.
+
+Use the returned `sdk_snippet` to guide the payload. **Never set `risk_level` or `annex_iii_category` based on the system's name, label, or your own inference of "this sounds like X" — only on what the human confirms about its actual function.**
+
+## Step 5 — Preview each proposed action
+
+Preview support differs by gap type. Check which applies before calling anything:
+
+**Evidence gaps (attestation path):** call `dry_run_attest` with the proposed record_type, system_name, and a reasonable payload. This is the one action type confirmed to have a dry-run preview. Show the controls it would earn and the resulting gate impact.
+
+**Intake gaps (registration path) and policy gaps (policy path):** there is no confirmed dry-run tool for `register_system` or `acknowledge_policy`. Do not assume `dry_run_attest` covers these — it is scoped to attestations. Before proposing these actions:
+- Check whether a dry-run variant for these tools exists in the current toolset. If it doesn't, say so plainly to the human: "I can't preview this registration/acknowledgment before writing it — there's no dry-run available for this action type yet. I can tell you which controls it's *expected* to earn based on `derive_controls`, but this hasn't been verified against the live system the way the attestation preview has."
+- Still call `derive_controls` to give the human an expected-controls estimate, but label it as an estimate, not a verified preview.
+- Do not present an intake or policy gap in the same format as a confirmed dry-run result — distinguish "previewed" from "estimated, not previewed" so the human isn't misled about the level of certainty.
+
+Show results like this, marking each one by confidence level:
 
 ```
-Gap 1: loan-scoring-v2 — no human_oversight record
+Gap 1: loan-scoring-v2 — no human_oversight record [PREVIEWED via dry_run_attest]
   Proposed: attest("human_oversight", {decision: "approved", reviewer: "..."}, "loan-scoring-v2")
   Would earn: EUAIA_ART14, EUAIA_ART13, ISO42001_A.6.6
   Gate impact: eu_ai_act gate would move from 43% → 67% ✓ PASSES
 
-Gap 2: chatbot-support — not registered (no ai_risk_assessment)
-  Proposed: register_system("chatbot-support", risk="medium", ...)
-  Would earn: EUAIA_ART9, ISO42001_6.1
+Gap 2: chatbot-support — not registered (no ai_risk_assessment) [ESTIMATED, NOT PREVIEWED — no dry-run available for register_system]
+  Candidate classification: needs human confirmation — see risk questions below
+  Proposed: register_system("chatbot-support", risk="<pending human input>", ...)
+  Expected to earn (unverified): EUAIA_ART9, ISO42001_6.1
   Gate impact: no gate impact but Art. 9 compliance gap closed
 
-Gap 3: loan-scoring-v2 — no policy_acknowledged record
+Gap 3: loan-scoring-v2 — no policy_acknowledged record [ESTIMATED, NOT PREVIEWED — no dry-run available for acknowledge_policy]
   Proposed: acknowledge_policy(person="dpo@...", policy="AI Use Policy", ...)
-  Would earn: SOC2_CC1.4, ISO42001_A.5.1
+  Expected to earn (unverified): SOC2_CC1.4, ISO42001_A.5.1
 ```
+
+If a dry-run (where available) returns zero controls, do not propose writing that record — explain why and suggest an alternative record type.
 
 ## Step 6 — Present for approval
 
 Present the full list as a numbered approval request. Be specific about:
-- What will be written (exact record_type and key payload fields)
-- What controls it earns
+- What will be written (exact record_type/action and key payload fields)
+- What controls it earns or is expected to earn
+- Whether it's a confirmed preview or an unverified estimate (carry the labels from Step 5 forward)
 - Whether it closes a gate
+- For any candidate high-risk system: that classification is pending the human's confirmation, not yet decided
 
 Ask: "Which of these would you like me to write? Reply with the numbers (e.g. '1, 3') or 'all'."
 
-**Do not write anything until the human responds.**
+**Do not write anything until the human responds.** For items marked "ESTIMATED, NOT PREVIEWED," make sure the human's approval message reflects they understood that — if there's any doubt, confirm explicitly before writing.
 
 ## Step 7 — Write approved records
 
 For each approved item:
-- If it is a system registration: call `register_system` with the confirmed fields
-- If it is a policy acknowledgment: call `acknowledge_policy`
-- For all other record types: call `attest`
+- If it is a system registration (intake gap): call `register_system` with the confirmed fields
+- If it is a policy acknowledgment (policy gap): call `acknowledge_policy`
+- For all other record types (evidence gaps): call `attest`
 
-After writing, confirm with the record_id returned.
+After writing, confirm with the record_id returned. For items that were estimated rather than previewed, also confirm whether the actual controls earned matched the estimate — report any mismatch to the human.
 
 ## Step 8 — Confirm score moved
 
@@ -88,3 +123,5 @@ Call `get_posture` again. Compare before/after and report:
 - For `art5_self_assessment`: only set true if the human has explicitly confirmed the system does not engage in prohibited practices. Ask if unclear.
 - The `identity` field on evidence records must be a real person's email, not a placeholder.
 - If a dry-run returns zero controls, do not propose writing that record — explain why and suggest an alternative record type.
+- Never set `risk_level` or `annex_iii_category` from inference alone — only from what the human confirms about the system's actual function (see Step 4).
+- Never present an unverified estimate (register_system or acknowledge_policy controls) using the same formatting as a confirmed dry_run_attest result. The human must always be able to tell which is which.
