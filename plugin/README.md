@@ -94,8 +94,14 @@ Every record type maps to whichever frameworks apply — one approval closes gap
 | `ai_risk_assessment` | Art. 9, Art. 11 | A.6.1, A.9.1 | CC3.1, CC3.2, CC5.1 | GOV.1, MAP.1 |
 | `human_oversight` | Art. 13, Art. 14 | A.6.2, A.6.6 | — | GOV.1 |
 | `model_evaluation` | Art. 9, Art. 15 | A.6.3, A.9.2 | CC3.2, CC5.1 | MEA.1 |
-| `policy_acknowledged` | — | A.2.2 | CC1.4, CC2.2, CC5.1, CC5.3 | — |
+| `training_data_governance` | Art. 10 | A.5.4, A.6.5 | — | MAP.1 |
+| `quality_management_review` | Art. 17 | A.6.1, A.6.3, A.9.1 | CC4.1, CC5.2 | GOV.1 |
+| `deployer_obligations_review` | Art. 26 | A.9.2 | — | GOV.1 |
+| `model_drift_event` | Art. 9, Art. 72 | A.6.4 | CC4.1, CC4.2 | MEA.2, MNG.1 |
 | `incident_report` | Art. 73 | A.3.2 | CC3.3, CC4.2, CC7.3, CC7.4 | MNG.1 |
-| `change_event` | Art. 9, Art. 17 | A.6.5 | CC8.1 | — |
+| `change_event` | — | A.6.2 | CC8.1 | — |
+| `policy_acknowledged` | — | A.2.2 | CC1.4, CC2.2, CC5.1, CC5.3 | — |
+
+**What's not in scope:** EU AI Act Art. 1–5 (scope + prohibited practices — legal determinations), Art. 51–56 (GPAI — foundation model providers only), and Art. 57–101 (regulatory apparatus, conformity assessment). Those require lawyers, not SDK calls.
 
 `get_posture` and `/mima:check-readiness` surface all four framework scores — not just EU AI Act.
