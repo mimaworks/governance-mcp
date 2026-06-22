@@ -14,6 +14,7 @@ import { acknowledgePolicyToolDefinition, handleAcknowledgePolicy } from "./tool
 import { listSystemsToolDefinition, handleListSystems } from "./tools/list_systems.js";
 import { listEvidenceToolDefinition, handleListEvidence } from "./tools/list_evidence.js";
 import { dryRunAttestToolDefinition, handleDryRunAttest } from "./tools/dry_run_attest.js";
+import { suggestGatesToolDefinition, handleSuggestGates } from "./tools/suggest_gates.js";
 import type { ClientConfig } from "./types.js";
 
 const apiKey = process.env.MIMA_API_KEY;
@@ -46,6 +47,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     deriveControlsToolDefinition,
     registerSystemToolDefinition,
     acknowledgePolicyToolDefinition,
+    suggestGatesToolDefinition,
   ],
 }));
 
@@ -69,6 +71,8 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       return handleListEvidence(request.params.arguments, clientConfig);
     case "dry_run_attest":
       return handleDryRunAttest(request.params.arguments, clientConfig);
+    case "suggest_gates":
+      return handleSuggestGates(request.params.arguments, clientConfig);
     default:
       return {
         content: [{ type: "text", text: `Unknown tool: ${request.params.name}` }],
