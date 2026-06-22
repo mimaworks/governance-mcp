@@ -47,7 +47,7 @@ Present in this format:
 - Top exposed call sites: [list top 3 if any]
 
 **What this means**
-[2–3 sentences in plain language for a CISO or board audience. No compliance jargon. Example: "Three of our AI systems have no formal risk assessment on file — this is the primary blocker for EU AI Act certification before the August 2026 deadline. Two production systems are making AI calls with no human oversight record in the last 30 days."]
+[2–3 sentences in plain language for a CISO or board audience. No compliance jargon. Example: "Three of our AI systems have no formal risk assessment on file — this is the primary blocker for EU AI Act Annex III compliance before the December 2027 deadline. Article 5 prohibited-practice bans are already enforceable today; two production systems are making AI calls with no human oversight record in the last 30 days."]
 
 ---
 
