@@ -54,7 +54,7 @@ If the answers indicate the system likely falls in an Annex III domain: note tha
 
 If the answers clearly place it outside all eight domains (e.g., it only answers FAQs and never gates access to anything): proceed with `derive_controls` using a non-high-risk framing, but still note the basis for that conclusion in the registration payload so it's auditable later, not just asserted.
 
-Use the returned `sdk_snippet` to guide the payload. **Never set `risk_level` or `annex_iii_category` based on the system's name, label, or your own inference of "this sounds like X" — only on what the human confirms about its actual function.**
+Use the returned `uncovered_required_controls` list to identify which record types the system still needs — each entry shows the `control_id`, `framework`, and the specific `record_types` that would satisfy it. Reason about *why* each record type applies given what the human has told you about the system's function; the data tells you what is missing, you supply the reasoning. **Never set `risk_level` or `annex_iii_category` based on the system's name, label, or your own inference of "this sounds like X" — only on what the human confirms about its actual function.**
 
 ## Step 5 — Preview each proposed action
 
