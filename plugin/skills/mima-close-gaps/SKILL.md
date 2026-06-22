@@ -61,6 +61,7 @@ Use the returned `uncovered_required_controls` list to identify which record typ
 **All three gap types support dry-run preview:**
 
 - **Evidence gaps:** call `dry_run_attest(record_type, payload, system_name)`
+  - When writing to production systems or after the gate status is unknown, pass `enforce_gates: true` to `attest` — it will block and explain if required gates are failing, and proceed silently if all clear.
 - **Intake gaps:** call `register_system(..., dry_run=true)`
 - **Policy gaps:** call `acknowledge_policy(..., dry_run=true)`
 
