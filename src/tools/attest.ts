@@ -57,7 +57,8 @@ export const attestToolDefinition = {
         type: "string",
         minLength: 1,
         maxLength: 200,
-        description: "Name of the AI system generating this record. E.g. 'loan-scoring-v2'.",
+        pattern: "^[a-zA-Z0-9][a-zA-Z0-9 _\\-\\.]*$",
+        description: "Name of the AI system generating this record. E.g. 'loan-scoring-v2'. Alphanumeric, spaces, hyphens, underscores, and dots only.",
       },
       identity: {
         type: "string",

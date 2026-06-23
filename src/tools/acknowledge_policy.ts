@@ -85,7 +85,7 @@ export async function handleAcknowledgePolicy(
     dry_run?: boolean;
   };
 
-  if (!input.person_email.includes("@")) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input.person_email)) {
     return {
       content: [{ type: "text", text: "person_email must be a valid email address." }],
       isError: true,

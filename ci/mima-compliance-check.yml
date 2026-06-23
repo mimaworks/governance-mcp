@@ -1,0 +1,126 @@
+# Mima Governance — PR Compliance Check
+#
+# Runs on every pull request. Scans AI library calls in changed files against
+# your workspace's live compliance posture. Fails the check if new or modified
+# AI systems are unregistered or have no evidence records.
+#
+# Setup:
+#   1. Add MIMA_WORKSPACE_ID and MIMA_API_KEY to your repository secrets.
+#      (Settings → Secrets and variables → Actions)
+#      API keys can be created in the Mima dashboard under Configure → API Keys.
+#   2. Copy this file to .github/workflows/mima-compliance-check.yml.
+#
+# The check runs in an isolated E2B sandbox — your source code never passes
+# through Mima servers. Mima fetches changed files directly from GitHub using
+# your workspace's existing GitHub connection.
+
+name: Mima Compliance Check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write   # used to post the check summary as a PR comment
+
+jobs:
+  compliance-check:
+    name: AI Governance Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Run Mima compliance check
+        id: mima
+        env:
+          MIMA_WORKSPACE_ID: ${{ secrets.MIMA_WORKSPACE_ID }}
+          MIMA_API_KEY: ${{ secrets.MIMA_API_KEY }}
+          MIMA_API_URL: ${{ vars.MIMA_API_URL || 'https://api.mima.ai/api' }}
+        run: |
+          # Explicitly mask the API key in logs — GitHub Actions masking may not
+          # catch all transformations (URL-encoding, partial exposure in errors).
+          echo "::add-mask::${MIMA_API_KEY}"
+
+          RESULT=$(curl -sf \
+            -X POST \
+            -H "Authorization: Bearer ${MIMA_API_KEY}" \
+            -H "Content-Type: application/json" \
+            "${MIMA_API_URL}/workspaces/${MIMA_WORKSPACE_ID}/governance/ci/pr-check" \
+            -d "{
+              \"repo_full_name\": \"${{ github.repository }}\",
+              \"pr_number\": ${{ github.event.number }}
+            }" \
+          )
+
+          echo "result=${RESULT}" >> "$GITHUB_OUTPUT"
+
+          PASS=$(echo "$RESULT" | jq -r '.pass')
+          VERDICT=$(echo "$RESULT" | jq -r '.verdict')
+          EXIT_CODE=$(echo "$RESULT" | jq -r '.exit_code')
+
+          echo "### Mima Compliance Check" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$PASS" = "true" ]; then
+            echo "✅ **${VERDICT}**" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ **${VERDICT}**" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Missing controls:**" >> "$GITHUB_STEP_SUMMARY"
+            echo "$RESULT" | jq -r '.missing_controls[]' | while read -r line; do
+              echo "- $line" >> "$GITHUB_STEP_SUMMARY"
+            done
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Recommended actions:**" >> "$GITHUB_STEP_SUMMARY"
+            echo "$RESULT" | jq -r '.recommended_actions[]' | while read -r line; do
+              echo "- $line" >> "$GITHUB_STEP_SUMMARY"
+            done
+          fi
+
+          exit "$EXIT_CODE"
+
+      - name: Post PR comment
+        if: always() && steps.mima.outputs.result != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            let result;
+            try {
+              result = JSON.parse(process.env.MIMA_RESULT || '{}');
+            } catch (e) {
+              core.warning('Mima returned an unexpected response — skipping PR comment.');
+              return;
+            }
+            if (typeof result.pass !== 'boolean') {
+              core.warning('Mima response missing required fields — skipping PR comment.');
+              return;
+            }
+            const icon = result.pass ? '✅' : '❌';
+            const systems = result.systems_found
+              .map(s => `| ${s.name} | \`${s.library}\` | ${s.file} | ${s.registered ? '✓' : '**No**'} | ${s.evidence_count} |`)
+              .join('\n');
+
+            let body = `## ${icon} Mima Compliance Check\n\n**${result.verdict}**\n\n`;
+
+            if (result.systems_found.length > 0) {
+              body += `### AI systems in changed files\n\n`;
+              body += `| System | Library | File | Registered | Evidence records |\n`;
+              body += `|--------|---------|------|------------|------------------|\n`;
+              body += systems + '\n\n';
+            }
+
+            if (result.missing_controls.length > 0) {
+              body += `### Missing controls\n\n`;
+              body += result.missing_controls.map(c => `- ${c}`).join('\n') + '\n\n';
+              body += `### Recommended actions\n\n`;
+              body += result.recommended_actions.map(a => `- ${a}`).join('\n') + '\n\n';
+              body += `> Register systems and add evidence in the [Mima dashboard](https://app.mima.ai).\n`;
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+        env:
+          MIMA_RESULT: ${{ steps.mima.outputs.result }}
