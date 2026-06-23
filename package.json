@@ -1,0 +1,29 @@
+{
+  "name": "@mima-ai/governance-mcp",
+  "version": "0.1.0",
+  "description": "MCP server — AI governance evidence for EU AI Act, SOC 2, ISO 42001, and NIST AI RMF",
+  "type": "module",
+  "bin": {
+    "mima-governance-mcp": "./dist/index.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "dev": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.4.0",
+    "vitest": "^1.6.0"
+  },
+  "license": "MIT"
+}

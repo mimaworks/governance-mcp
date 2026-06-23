@@ -1,6 +1,8 @@
 # Mima Governance — Claude Code Plugin
 
-Three slash commands that turn Claude into a compliance copilot for EU AI Act, SOC 2, ISO 42001, and NIST AI RMF.
+Four slash commands that turn Claude into a compliance copilot for EU AI Act, SOC 2, ISO 42001, and NIST AI RMF.
+
+**Works with any stack.** The MCP server is the universal evidence path — TypeScript, Python, Go, Java, Ruby, or any language. Your AI agent calls `attest()`, GRC records land in the ledger, and framework scores move. No SDK install, no decorators, no code changes to your application.
 
 ## Requirements
 
@@ -55,6 +57,17 @@ Runs the Art. 9 intake workflow:
 
 **Use when**: you have unregistered AI systems, or when preparing for an EU AI Act or ISO 42001 audit — both require a formal AI system inventory with risk assessments on file.
 
+### `/mima:configure-gates`
+
+Runs the gate configuration workflow:
+1. Observes current gate setup (required vs advisory, pass/fail state)
+2. Gets prioritised recommendations — failing gates, advisory gates ready to promote, unconfigured frameworks worth gating
+3. Presents each recommendation as an explicit decision for you to approve
+4. For failing required gates: shows which evidence types would close the gap fastest
+5. Confirms final state after decisions are made
+
+**Use when**: you want to set up CI gates, improve gate coverage, or a required gate is failing and blocking deploys.
+
 ### `/mima:check-readiness`
 
 Produces a CISO-ready posture summary:
@@ -69,7 +82,7 @@ Produces a CISO-ready posture summary:
 
 ## How it works
 
-These skills use the 9-tool Mima MCP server:
+These skills use the 10-tool Mima MCP server:
 
 | Tool | What it does |
 |------|-------------|
@@ -82,6 +95,7 @@ These skills use the 9-tool Mima MCP server:
 | `acknowledge_policy` | Record a policy acknowledgment |
 | `derive_controls` | Get recommended record types for a system description |
 | `check_gates` | Check gate pass/fail status with exit codes |
+| `suggest_gates` | Prioritised gate recommendations — what to add, promote, or fix |
 
 The loop design follows the audit principle: **Claude proposes, human approves, Mima records.** Nothing is written to the ledger without explicit approval.
 

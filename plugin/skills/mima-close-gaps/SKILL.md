@@ -113,6 +113,17 @@ Call `get_posture` again. Compare before/after and report:
 - Gates that now pass
 - Remaining gaps and recommended next session
 
+## Step 9 — Offer to distribute the updated status
+
+After confirming the score moved, offer to share the updated compliance posture:
+
+> "Your score has moved from X% → Y%. Would you like me to:
+> - Publish a compliance status page to Notion or Confluence (run `publish_status`)
+> - Post an update to your #compliance Slack channel (run `mcp_action`)
+> - Generate a board-ready PDF report (run `generate_gap_report`)"
+
+Only take these actions with explicit approval. If the human declines, end the session with a brief summary: what was closed, what remains, and the recommended next session focus.
+
 ## Constraints
 
 - If the human has not provided required fields (e.g. responsible_person email, risk_level for a high-risk system), ask for them before calling `register_system` — do not invent values.
