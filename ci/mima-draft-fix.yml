@@ -1,0 +1,119 @@
+# Mima Draft Fix — GRC-DEV-4 Path C
+#
+# Triggered when the mima-governance GitHub issue gets the `cursor-fix` label.
+# Diagnoses the compliance gap, adds TODO comments in the right files, and
+# posts the result as an issue comment for human review.
+#
+# CRITICAL: This action NEVER runs `mima push` or `mima.attest()`.
+# Attestation requires a human decision. The automation diagnosis + TODO
+# comments are a draft — the developer completes the attestation.
+#
+# Setup: add MIMA_API_KEY and MIMA_WORKSPACE_ID to repository secrets.
+
+name: Mima Draft Fix
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  draft-fix:
+    if: github.event.label.name == 'cursor-fix'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install mima
+        run: pip install mima-governance --quiet
+
+      - name: Analyse compliance gaps (dry-run — no attestation)
+        id: analyse
+        env:
+          MIMA_API_KEY: ${{ secrets.MIMA_API_KEY }}
+          MIMA_WORKSPACE_ID: ${{ secrets.MIMA_WORKSPACE_ID }}
+        run: |
+          # Check gate status — structured JSON output
+          mima gates check --json > gates.json || true
+
+          # Scan this repo for unattested AI call sites — dry-run only
+          mima scan . --governance --json > scan.json || true
+
+          echo "Analysis complete"
+
+      - name: Post gap analysis as issue comment
+        uses: actions/github-script@v7
+        env:
+          MIMA_API_KEY: ${{ secrets.MIMA_API_KEY }}
+          MIMA_WORKSPACE_ID: ${{ secrets.MIMA_WORKSPACE_ID }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Load analysis results (gracefully handle missing files)
+            let gates = {};
+            let scan = {};
+            try { gates = JSON.parse(fs.readFileSync('gates.json', 'utf8')); } catch (_) {}
+            try { scan = JSON.parse(fs.readFileSync('scan.json', 'utf8')); } catch (_) {}
+
+            // Build comment body — distinguishes decorator gaps from evidence record gaps
+            let sections = [];
+
+            // Gate status summary
+            const failingGates = (gates.gates || []).filter(g => g.status === 'failing');
+            if (failingGates.length > 0) {
+              sections.push('## Gate status\n');
+              for (const gate of failingGates) {
+                sections.push(`- **${gate.framework}**: ${gate.current_pct}% (needs ${gate.threshold_pct}%)`);
+              }
+              sections.push('');
+            }
+
+            // Unattested AI call sites — decorator gap
+            const unattestedCalls = (scan.unattested_calls || []).slice(0, 10);
+            if (unattestedCalls.length > 0) {
+              sections.push('## Missing decorators (code change required)\n');
+              sections.push('These AI calls need `@mima.attest()` added **by a human** before the next push:\n');
+              for (const call of unattestedCalls) {
+                sections.push(`- \`${call.file}:${call.line}\` — \`${call.library}\``);
+                sections.push(`  \`\`\`\n  // TODO(mima-governance): add @mima.attest(tool_name='${call.library}') here\n  // Required for: ${call.control || 'attestation'}\n  \`\`\``);
+              }
+              sections.push('');
+            }
+
+            // Missing evidence records — human action required
+            const missingRecords = (scan.missing_evidence || []).slice(0, 5);
+            if (missingRecords.length > 0) {
+              sections.push('## Missing evidence records (human action required)\n');
+              sections.push('Run these commands **after completing the corresponding work**:\n');
+              for (const rec of missingRecords) {
+                sections.push(`- \`mima push ${rec.record_type} --system ${rec.system_name || '<system>'} --reviewer your@email.com\``);
+                sections.push(`  _(Required for: ${rec.control_label || rec.control_id})_`);
+              }
+              sections.push('');
+            }
+
+            if (sections.length === 0) {
+              sections.push('No actionable gaps found — the gate may have recovered. Run `mima gates check` to verify.');
+            }
+
+            // Safety reminder — never auto-attests
+            sections.push('---');
+            sections.push('> **This comment was generated automatically.** It identifies gaps only.');
+            sections.push('> `@mima.attest()` and `mima push` must be run by a human after completing the actual work.');
+            sections.push('> Automation that attests on your behalf produces false evidence and invalidates your audit pack.');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: sections.join('\n'),
+            });
