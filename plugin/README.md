@@ -80,6 +80,22 @@ Produces a CISO-ready posture summary:
 
 **Use when**: you need a board-level status report, are preparing for an auditor conversation, or want a Monday-morning compliance briefing.
 
+### `/mima:quarterly-evidence`
+
+Runs the end-of-quarter governance evidence collection workflow:
+1. Observes current posture and identifies failing gates
+2. Ranks the 8 AI-governance record types by how long since last evidence (stalest first)
+3. Asks what your team actually completed this quarter — one record type at a time, conversationally
+4. Dry-runs each record to show exactly which controls it would earn before writing anything
+5. Presents the full list for your approval as a numbered batch
+6. Writes only what you approve, with `record_id` confirmation per write
+7. Re-checks posture and reports the before/after score delta across all frameworks
+8. Offers to post the quarter-end summary to Notion, Confluence, or Slack
+
+**Why this matters**: Every quarter without fresh evidence is a quarter where a gap in the ledger can become an auditor finding. This workflow closes that gap in a single session — the GRC manager describes what happened, Claude captures it in the right shape, and the audit trail writes itself.
+
+**Use when**: you are at the end of a quarter and a GRC manager has completed governance activities (risk assessments, model evaluations, oversight reviews) that need to land in the ledger before the audit window closes.
+
 ## How it works
 
 These skills use the 10-tool Mima MCP server:
