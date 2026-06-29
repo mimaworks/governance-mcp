@@ -104,8 +104,20 @@ export async function handleCheckGates(
 
   const data = (await response.json()) as GatesCheckResponse;
 
+  const advisoryFailures = data.results.filter(g => g.mode === "advisory" && g.status === "failing");
+  const requiredFailures = data.results.filter(g => g.mode === "required" && g.status === "failing");
+
+  let summary: string;
+  if (!data.passed) {
+    summary = `BLOCKED — ${requiredFailures.length} required gate(s) failing.`;
+  } else if (advisoryFailures.length > 0) {
+    summary = `Required gates PASS — safe to deploy. ${advisoryFailures.length} advisory gate(s) need attention.`;
+  } else {
+    summary = "All gates PASS — safe to deploy.";
+  }
+
   const lines: string[] = [];
-  lines.push(data.passed ? "All gates PASS — safe to deploy." : "BLOCKED — one or more required gates are failing.");
+  lines.push(summary);
   lines.push("");
 
   for (const g of data.results) {

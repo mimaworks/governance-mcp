@@ -216,14 +216,14 @@ export async function handleRegisterSystem(
         ``,
         `If you call register_system("${input.system_name}", ...) it would earn:`,
         `  ${data.mapped_controls.length > 0 ? data.mapped_controls.join(", ") : "(no controls — check payload fields)"}`,
-        `  Risk level: ${input.risk_level}${input.annex_iii_category ? ` — Annex III: ${input.annex_iii_category}` : ""}`,
+        ...(input.risk_level ? [`  Risk level: ${input.risk_level}${input.annex_iii_category ? ` — Annex III: ${input.annex_iii_category}` : ""}`] : []),
         ``,
         `Approve this registration to write it: call register_system() with dry_run omitted or false.`,
       ]
     : [
         `AI system "${input.system_name}" registered successfully.`,
         `Record ID: ${data.record_id}`,
-        `Risk level: ${input.risk_level}${input.annex_iii_category ? ` — Annex III: ${input.annex_iii_category}` : ""}`,
+        ...(input.risk_level ? [`Risk level: ${input.risk_level}${input.annex_iii_category ? ` — Annex III: ${input.annex_iii_category}` : ""}`] : []),
         `Responsible person: ${input.responsible_person}`,
         `Controls earned: ${data.mapped_controls.join(", ")}`,
         ``,
