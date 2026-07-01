@@ -5,7 +5,7 @@ import type { ClientConfig } from "./types.js";
 const config: ClientConfig = {
   apiKey: "test-key",
   workspaceId: "ws-uuid-1234",
-  baseUrl: "https://api.mima.ai",
+  baseUrl: "https://api.mima.works",
 };
 
 const baseRequest = {
@@ -46,7 +46,7 @@ describe("postEvidence", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe(
-      "https://api.mima.ai/api/workspaces/ws-uuid-1234/governance/grc/evidence"
+      "https://api.mima.works/api/workspaces/ws-uuid-1234/governance/grc/evidence"
     );
     const headers = init.headers as Record<string, string>;
     expect(headers["Authorization"]).toBe("Bearer test-key");

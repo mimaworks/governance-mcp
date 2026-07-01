@@ -6,7 +6,7 @@ Four slash commands that turn Claude into a compliance copilot for EU AI Act, SO
 
 ## Requirements
 
-The [Mima Governance MCP server](https://docs.mima.ai/governance/mcp-server) must be configured in your `.mcp.json`:
+The [Mima Governance MCP server](https://docs.mima.works/governance/mcp-server) must be configured in your `.mcp.json`:
 
 ```json
 {
@@ -23,7 +23,7 @@ The [Mima Governance MCP server](https://docs.mima.ai/governance/mcp-server) mus
 }
 ```
 
-Get your API key and workspace ID from the [Mima dashboard](https://governance.mima.ai) under Settings → API Keys.
+Get your API key and workspace ID from the [Mima dashboard](https://governance.mima.works) under Settings → API Keys.
 
 ## Installation
 

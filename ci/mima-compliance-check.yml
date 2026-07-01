@@ -36,7 +36,7 @@ jobs:
         env:
           MIMA_WORKSPACE_ID: ${{ secrets.MIMA_WORKSPACE_ID }}
           MIMA_API_KEY: ${{ secrets.MIMA_API_KEY }}
-          MIMA_API_URL: ${{ vars.MIMA_API_URL || 'https://api.mima.ai/api' }}
+          MIMA_API_URL: ${{ vars.MIMA_API_URL || 'https://api.mima.works/api' }}
         run: |
           # Explicitly mask the API key in logs — GitHub Actions masking may not
           # catch all transformations (URL-encoding, partial exposure in errors).
@@ -113,7 +113,7 @@ jobs:
               body += result.missing_controls.map(c => `- ${c}`).join('\n') + '\n\n';
               body += `### Recommended actions\n\n`;
               body += result.recommended_actions.map(a => `- ${a}`).join('\n') + '\n\n';
-              body += `> Register systems and add evidence in the [Mima dashboard](https://app.mima.ai).\n`;
+              body += `> Register systems and add evidence in the [Mima dashboard](https://app.mima.works).\n`;
             }
 
             github.rest.issues.createComment({

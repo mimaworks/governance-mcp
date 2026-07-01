@@ -1,6 +1,6 @@
 # @mima-ai/governance-mcp
 
-MCP server for AI governance — push compliance evidence to [Mima](https://mima.ai) from any agent, any stack, 4 lines of config.
+MCP server for AI governance — push compliance evidence to [Mima](https://mima.works) from any agent, any stack, 4 lines of config.
 
 One tool call maps to EU AI Act, ISO 42001, SOC 2, and NIST AI RMF simultaneously. Your readiness score updates automatically.
 
@@ -102,7 +102,7 @@ dry_run_attest({ record_type: "ai_risk_assessment", system_name: "loan-scorer" }
 
 ## Get an API key
 
-[mima.ai](https://mima.ai) → sign up → copy your key from the dashboard.
+[mima.works](https://mima.works) → sign up → copy your key from the dashboard.
 
 ## Python SDK
 
@@ -114,5 +114,5 @@ pip install mima-governance
 
 ## Docs
 
-[docs.mima.ai](https://docs.mima.ai)
+[docs.mima.works](https://docs.mima.works)
 

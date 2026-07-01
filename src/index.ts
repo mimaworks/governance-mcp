@@ -19,12 +19,12 @@ import type { ClientConfig } from "./types.js";
 
 const apiKey = process.env.MIMA_API_KEY;
 const workspaceId = process.env.MIMA_WORKSPACE_ID;
-const baseUrl = process.env.MIMA_BASE_URL ?? "https://api.mima.ai";
+const baseUrl = process.env.MIMA_BASE_URL ?? "https://api.mima.works";
 
 if (!apiKey || !workspaceId) {
   process.stderr.write(
     "Error: MIMA_API_KEY and MIMA_WORKSPACE_ID must be set in the .mcp.json env block.\n" +
-    "See: https://docs.mima.ai/governance/mcp-server\n"
+    "See: https://docs.mima.works/governance/mcp-server\n"
   );
   process.exit(1);
 }

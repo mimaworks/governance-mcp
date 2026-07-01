@@ -5,7 +5,7 @@ import type { ClientConfig } from "../types.js";
 const config: ClientConfig = {
   apiKey: "test-key",
   workspaceId: "ws-uuid-1234",
-  baseUrl: "https://api.mima.ai",
+  baseUrl: "https://api.mima.works",
 };
 
 beforeEach(() => {
