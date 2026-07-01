@@ -116,10 +116,3 @@ pip install mima-governance
 
 [docs.mima.ai](https://docs.mima.ai)
 
-### Ask the docs directly from Claude
-
-```bash
-claude mcp add --transport http mima-docs https://mima.docs.buildwithfern.com/_mcp/server
-```
-
-Once added, ask Claude questions about the SDK without leaving your editor — it queries the live documentation directly.
