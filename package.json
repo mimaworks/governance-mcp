@@ -1,6 +1,6 @@
 {
   "name": "@mima-ai/governance-mcp",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "MCP server — AI governance evidence for EU AI Act, SOC 2, ISO 42001, and NIST AI RMF",
   "type": "module",
   "bin": {
@@ -28,8 +28,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mima-ai/governance-mcp"
+    "url": "https://github.com/getmima/governance-mcp"
   },
   "homepage": "https://docs.mima.ai",
-  "bugs": "https://github.com/mima-ai/governance-mcp/issues"
+  "bugs": "https://github.com/getmima/governance-mcp/issues"
 }
