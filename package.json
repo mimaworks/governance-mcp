@@ -25,6 +25,18 @@
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   },
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "ai-governance",
+    "eu-ai-act",
+    "iso-42001",
+    "soc2",
+    "nist-ai-rmf",
+    "compliance",
+    "grc"
+  ],
   "license": "MIT",
   "repository": {
     "type": "git",
