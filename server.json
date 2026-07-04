@@ -6,6 +6,7 @@
     "url": "https://github.com/mimaworks/governance-mcp",
     "source": "github"
   },
+  "websiteUrl": "https://docs.mima.works",
   "version": "0.1.12",
   "packages": [
     {
