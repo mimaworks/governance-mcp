@@ -1,5 +1,7 @@
 # @mima-ai/governance-mcp
 
+[![governance-mcp MCP server](https://glama.ai/mcp/servers/mimaworks/governance-mcp/badges/score.svg)](https://glama.ai/mcp/servers/mimaworks/governance-mcp)
+
 MCP server for AI governance — push compliance evidence to [Mima](https://mima.works) from any agent, any stack, 4 lines of config.
 
 One tool call maps to EU AI Act, ISO 42001, SOC 2, and NIST AI RMF simultaneously. Your readiness score updates automatically.
