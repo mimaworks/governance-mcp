@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "works.mima/governance-mcp",
+  "description": "AI governance evidence for EU AI Act, ISO 42001, SOC 2, and NIST AI RMF.",
+  "repository": {
+    "url": "https://github.com/mimaworks/governance-mcp",
+    "source": "github"
+  },
+  "version": "0.1.12",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@mima-ai/governance-mcp",
+      "version": "0.1.12",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MIMA_API_KEY",
+          "description": "Your Mima API key (mima_ext_...)",
+          "isRequired": true,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MIMA_WORKSPACE_ID",
+          "description": "Your Mima workspace ID (ws-...)",
+          "isRequired": true,
+          "isSecret": false,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,6 +1,6 @@
 {
   "name": "@mima-ai/governance-mcp",
-  "version": "0.1.10",
+  "version": "0.1.12",
   "description": "MCP server — AI governance evidence for EU AI Act, SOC 2, ISO 42001, and NIST AI RMF",
   "type": "module",
   "bin": {
@@ -25,6 +25,7 @@
     "typescript": "^5.4.0",
     "vitest": "^1.6.0"
   },
+  "mcpName": "works.mima/governance-mcp",
   "keywords": [
     "mcp",
     "mcp-server",
