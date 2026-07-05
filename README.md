@@ -10,17 +10,17 @@ One tool call maps to EU AI Act, ISO 42001, SOC 2, and NIST AI RMF simultaneousl
 ## Install
 
 ```bash
-npx @mima-ai/governance-mcp
+npx @mima-ai/governance-mcp@0.1.13
 ```
 
-Or add to your MCP config:
+Or add to your MCP config (always pin the version):
 
 ```json
 {
   "mcpServers": {
     "mima-governance": {
       "command": "npx",
-      "args": ["-y", "@mima-ai/governance-mcp"],
+      "args": ["-y", "@mima-ai/governance-mcp@0.1.13"],
       "env": {
         "MIMA_API_KEY": "mima_ext_...",
         "MIMA_WORKSPACE_ID": "ws-..."
