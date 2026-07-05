@@ -1,6 +1,7 @@
 # @mima-ai/governance-mcp
 
 [![governance-mcp MCP server](https://glama.ai/mcp/servers/mimaworks/governance-mcp/badges/score.svg)](https://glama.ai/mcp/servers/mimaworks/governance-mcp)
+[![MCP Badge](https://lobehub.com/badge/mcp-full/mimaworks-governance-mcp?theme=light)](https://lobehub.com/mcp/mimaworks-governance-mcp)
 
 MCP server for AI governance — push compliance evidence to [Mima](https://mima.works) from any agent, any stack, 4 lines of config.
 
